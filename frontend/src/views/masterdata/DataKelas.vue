@@ -31,10 +31,10 @@
     <Dialog v-model:visible="showDialog" :header="form.id ? 'Edit Kelas' : 'Tambah Kelas'" modal :closable="true" :style="{ width: '30vw' }">
       <div class="p-fluid">
         <label class="mb-2 font-semibold">Nama Kelas</label>
-        <InputText v-model="form.nama_kelas" class="mb-3" :disabled="!!form.id" />
+        <InputText v-model="form.nama_kelas" class="mb-3"  />
 
         <label class="mb-2 font-semibold">Kode Kelas</label>
-        <InputText v-model="form.kode_kelas" class="mb-3" :disabled="!!form.id" />
+        <InputText v-model="form.kode_kelas" class="mb-3" />
 
         <label class="mb-2 font-semibold">Wali Kelas</label>
         <Dropdown

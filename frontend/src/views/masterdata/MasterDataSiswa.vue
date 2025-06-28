@@ -54,6 +54,17 @@
           <label for="nama_lengkap_siswa">Nama Lengkap</label>
           <input v-model="selectedSiswa.nama_lengkap_siswa" class="form-control" id="nama_lengkap_siswa" />
         </div>
+        
+        <div class="form-group">
+          <label for="kelas">Kelas</label>
+          <select v-model="selectedSiswa.kelas_id" class="form-control" id="kelas">
+            <option disabled value="">Pilih Kelas</option>
+            <option v-for="kelas in kelasList" :key="kelas.id" :value="kelas.id">
+              {{ kelas.nama_kelas }}
+            </option>
+          </select>
+        </div>
+
         <div class="form-group">
           <label for="nis">NIS</label>
           <input v-model="selectedSiswa.nis" class="form-control" id="nis" />

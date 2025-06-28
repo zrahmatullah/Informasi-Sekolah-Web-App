@@ -22,7 +22,7 @@ class SiswaController extends Controller
         $validated = $request->validate([
             'nama_lengkap_siswa' => 'required|string|max:255',
             'kelas_id' => 'required|exists:kelas,id',
-            'guru_id' => 'required|exists:guru,id',
+            'guru_id' => 'required|exists:gurus,id',
             'nis' => 'required|numeric',
             'nisn' => 'required|numeric',
             'tempat_lahir' => 'required|string',
@@ -88,6 +88,7 @@ class SiswaController extends Controller
         $request->validate([
             'nama_lengkap_siswa' => 'required|string|max:255',
             'kelas_id' => 'required|exists:kelas,id',
+            'guru_id' => 'required|exists:gurus,id',
             'nis' => 'required|numeric|unique:siswas,nis,' . $id,
             'nisn' => 'required|numeric|unique:siswas,nisn,' . $id,
             'tempat_lahir' => 'required|string|max:255',

@@ -13,11 +13,11 @@ class KelasController extends Controller
     {
         $kelas = Kelas::with('guru')
             ->orderBy('id', 'asc')
-            // ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json($kelas);
     }
+
 
     public function show($id)
     {

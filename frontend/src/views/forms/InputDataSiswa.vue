@@ -13,6 +13,18 @@
         <Dropdown v-model="formData.kelas_id" :options="kelasList" optionLabel="nama_kelas" optionValue="id" placeholder="Pilih Kelas" />
       </div>
 
+      <div class="input-group">
+        <label for="guru_id">Guru</label>
+        <Dropdown
+          v-model="formData.guru_id"
+          :options="guruOptions"
+          optionLabel="nama_guru"
+          optionValue="guru_id"
+          placeholder="Pilih Guru"
+          readonly
+        />
+      </div>
+
       <!-- Nama Siswa -->
       <div class="input-group">
         <label for="nama">Nama Siswa</label>
@@ -109,6 +121,7 @@ export default {
       formData: {
         nama_lengkap_siswa: "",
         kelas_id: "",
+        guru_id: "",
         nis: "",
         nisn: "",
         tempat_lahir: "",
@@ -132,6 +145,7 @@ export default {
         jenis_kelamin_id: "",
       },
       kelasList: [],
+      guruOptions: [],
       jenisKelaminList: [],
       otpCode: '',
       otpSent: false,
@@ -160,8 +174,25 @@ export default {
   methods: {
     fetchKelas() {
       axios.get('http://127.0.0.1:8000/api/kelas')
-        .then(response => this.kelasList = response.data)
-        .catch(error => console.error("Gagal fetch kelas:", error));
+        .then(response => {
+          this.kelasList = response.data;
+
+          // Siapkan guruOptions untuk dropdown (tidak wajib, karena dropdown guru diset otomatis)
+          const guruMap = new Map();
+          this.kelasList.forEach(kelas => {
+            if (kelas.guru) {
+              guruMap.set(kelas.guru.id, {
+                guru_id: kelas.guru.id,
+                nama_guru: kelas.guru.nama
+              });
+            }
+          });
+
+          this.guruOptions = Array.from(guruMap.values());
+        })
+        .catch(error => {
+          console.error("Gagal fetch kelas:", error);
+        });
     },
     fetchJenisKelamin() {
       axios.get('http://127.0.0.1:8000/api/jenis-kelamin')
@@ -216,10 +247,7 @@ export default {
         .finally(() => this.loading = false);
     },
     submitForm() {
-      if (!this.emailVerified) {
-        this.$toast.add({ severity: 'error', summary: 'Email belum diverifikasi.', life: 3000 });
-        return;
-      }
+
       for (const key in this.formData) {
         if (this.formData[key] === "" || this.formData[key] === null) {
           this.$toast.add({
@@ -249,6 +277,16 @@ export default {
       this.message = "";
       this.success = false;
       this.emailVerified = false;
+    }
+  },
+  watch: {
+    'formData.kelas_id'(newKelasId) {
+      const selectedKelas = this.kelasList.find(k => k.id === newKelasId);
+      if (selectedKelas && selectedKelas.guru) {
+        this.formData.guru_id = selectedKelas.guru.id;
+      } else {
+        this.formData.guru_id = null;
+      }
     }
   },
   mounted() {

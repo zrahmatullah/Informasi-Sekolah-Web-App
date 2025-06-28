@@ -16,17 +16,18 @@ class DashboardGuruController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $guruId = auth()->user()->guru->id ?? null;
+        $guruId = $user->guru->id ?? null;
 
         $jumlahSiswa = Siswa::where('guru_id', $guruId)->count();
-        $totalKritik = KritikSaran::count();
+        $totalKritik = KritikSaran::where('guru_id', $guruId)->count();
 
         $kritikSaran = KritikSaran::selectRaw("
-            TO_CHAR(created_at, 'Mon') as bulan,
-            EXTRACT(MONTH FROM created_at) as bulan_angka,
-            COUNT(*) as total
-        ")
+        TO_CHAR(created_at, 'Mon') as bulan,
+        EXTRACT(MONTH FROM created_at) as bulan_angka,
+        COUNT(*) as total
+    ")
             ->whereYear('created_at', now()->year)
+            ->where('guru_id', $guruId)
             ->groupBy('bulan', 'bulan_angka')
             ->orderBy('bulan_angka')
             ->get();
@@ -39,13 +40,11 @@ class DashboardGuruController extends Controller
             ->latest('tanggal')
             ->first();
 
-        // Ambil nama hari ini, misal "Senin"
         $hariIni = Carbon::now()->translatedFormat('l');
 
-        // Ambil jadwal sesuai hari ini
-        $jadwalHariIni = JadwalPelajaran::with(['mapel', 'kelas']) // sesuaikan relasi jika ada
+        $jadwalHariIni = JadwalPelajaran::with(['mapel', 'kelas'])
             ->where('hari', $hariIni)
-            ->where('guru_id', $guruId) // jika ingin hanya jadwal guru tersebut
+            ->where('guru_id', $guruId)
             ->get();
 
         return response()->json([
