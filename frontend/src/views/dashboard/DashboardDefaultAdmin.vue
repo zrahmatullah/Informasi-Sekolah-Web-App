@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <div v-if="loading" class="loading">Loading data...</div>
+    <div v-if="loading" class="loading">Loading </div>
     <div v-else>
       <div v-if="error" class="error">{{ error }}</div>
       <div v-else>
