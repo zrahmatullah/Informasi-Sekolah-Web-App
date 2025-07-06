@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\Kelas;
 use App\Models\Siswa;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Validator;
 
 class SiswaController extends Controller
 {
@@ -88,7 +89,6 @@ class SiswaController extends Controller
         $request->validate([
             'nama_lengkap_siswa' => 'required|string|max:255',
             'kelas_id' => 'required|exists:kelas,id',
-            'guru_id' => 'required|exists:gurus,id',
             'nis' => 'required|numeric|unique:siswas,nis,' . $id,
             'nisn' => 'required|numeric|unique:siswas,nisn,' . $id,
             'tempat_lahir' => 'required|string|max:255',
@@ -118,10 +118,17 @@ class SiswaController extends Controller
             return response()->json(['message' => 'Siswa tidak ditemukan'], 404);
         }
 
-        $siswa->update($request->all());
+        $siswa->update($request->except('guru_id'));
+
+        $kelas = Kelas::find($siswa->kelas_id);
+        if ($kelas && $kelas->guru_id) {
+            $siswa->guru_id = $kelas->guru_id;
+            $siswa->save();
+        }
 
         return response()->json(['message' => 'Data siswa berhasil diupdate', 'data' => $siswa]);
     }
+
 
     public function destroy($id)
     {
