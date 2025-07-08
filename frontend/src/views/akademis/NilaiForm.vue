@@ -72,15 +72,16 @@
           </template>
         </Column>
         <Column header="Aksi" style="width: 150px">
-          <template #body="{ data }">
-            <Button
-              label="Input Nilai"
-              icon="pi pi-pencil"
-              class="p-button-sm p-button-info"
-              @click="showInputDialog(data)"
-            />
-          </template>
-        </Column>
+        <template #body="{ data }">
+          <Button
+            :label="data.nilai_tugas !== null && data.nilai_uts !== null && data.nilai_ujian !== null ? 'Edit Nilai' : 'Input Nilai'"
+            icon="pi pi-pencil"
+            class="p-button-sm"
+            :class="data.nilai_tugas !== null && data.nilai_uts !== null && data.nilai_ujian !== null ? 'p-button-warning' : 'p-button-info'"
+            @click="showInputDialog(data)"
+          />
+        </template>
+      </Column>
       </DataTable>
     </div>
 
@@ -143,7 +144,6 @@ const nilaiList = ref([])
 const dialogVisible = ref(false)
 const selectedSiswa = ref({})
 
-// Fetch dropdown data
 onMounted(async () => {
   await fetchDropdownData()
 })
@@ -219,32 +219,41 @@ const tentukanGrade = (rata) => {
 }
 
 const simpanNilaiDialog = async () => {
-  const siswa = selectedSiswa.value
+  const siswa = selectedSiswa.value;
 
   if (siswa.nilai_tugas == null || siswa.nilai_uts == null || siswa.nilai_ujian == null) {
-    toast.add({ severity: 'warn', summary: 'Lengkapi Nilai', detail: 'Nilai belum lengkap!' })
-    return
+    toast.add({ severity: 'warn', summary: 'Lengkapi Nilai', detail: 'Nilai belum lengkap!' });
+    return;
   }
 
-  siswa.mata_pelajaran_id = selectedMapelId.value
-  siswa.kelas_id = selectedKelasId.value
-  siswa.tahun_pelajaran_id = selectedTahunPelajaranId.value
-  siswa.rata_rata = parseFloat(hitungRataRata(siswa.nilai_tugas, siswa.nilai_uts, siswa.nilai_ujian))
-  siswa.grade = tentukanGrade(siswa.rata_rata)
+  siswa.mata_pelajaran_id = selectedMapelId.value;
+  siswa.kelas_id = selectedKelasId.value;
+  siswa.tahun_pelajaran_id = selectedTahunPelajaranId.value;
+  siswa.rata_rata = parseFloat(hitungRataRata(siswa.nilai_tugas, siswa.nilai_uts, siswa.nilai_ujian));
+  siswa.grade = tentukanGrade(siswa.rata_rata);
+
+  const isEdit = siswa.nilai_tugas_awal !== undefined || siswa.nilai_tugas !== null;
 
   try {
-    await axios.post('http://127.0.0.1:8000/api/nilai', siswa)
-    const index = nilaiList.value.findIndex(n => n.siswa_id === siswa.siswa_id)
-    if (index !== -1) {
-      nilaiList.value[index] = { ...siswa }
+    if (isEdit) {
+      await axios.put('http://127.0.0.1:8000/api/nilai', siswa);
+    } else {
+      await axios.post('http://127.0.0.1:8000/api/nilai', siswa);
     }
 
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Nilai disimpan.' })
-    dialogVisible.value = false
+    const index = nilaiList.value.findIndex(n => n.siswa_id === siswa.siswa_id);
+    if (index !== -1) {
+      nilaiList.value[index] = { ...siswa };
+    }
+
+    toast.add({ severity: 'success', summary: 'Berhasil', detail: isEdit ? 'Nilai diperbarui.' : 'Nilai disimpan.' });
+    dialogVisible.value = false;
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Gagal menyimpan nilai.' })
+    const errorMessage = err.response?.data?.message || 'Gagal menyimpan nilai.';
+    toast.add({ severity: 'error', summary: 'Error', detail: errorMessage });
   }
-}
+};
+
 </script>
 
 <style scoped>

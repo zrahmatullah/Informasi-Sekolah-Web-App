@@ -27,7 +27,7 @@ class NilaiSiswaController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(rules: [
+        $request->validate([
             'siswa_id' => 'required|exists:siswas,id',
             'mata_pelajaran_id' => 'required|exists:mata_pelajarans,id',
             'tahun_pelajaran_id' => 'required|exists:tahun_pelajaran,id',
@@ -35,6 +35,18 @@ class NilaiSiswaController extends Controller
             'nilai_uts' => 'required|integer|min:0|max:100',
             'nilai_ujian' => 'required|integer|min:0|max:100',
         ]);
+
+
+        $existing = NilaiSiswa::where('siswa_id', $request->siswa_id)
+            ->where('mata_pelajaran_id', $request->mata_pelajaran_id)
+            ->where('tahun_pelajaran_id', $request->tahun_pelajaran_id)
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'message' => 'Data nilai sudah ada. Gunakan fitur edit untuk memperbarui.'
+            ], 409);
+        }
 
         $rata2 = $this->hitungRataRata($request->nilai_tugas, $request->nilai_uts, $request->nilai_ujian);
         $grade = $this->getGrade($rata2);
@@ -52,6 +64,7 @@ class NilaiSiswaController extends Controller
 
         return response()->json(['message' => 'Nilai berhasil disimpan.']);
     }
+
 
     public function update(Request $request)
     {
