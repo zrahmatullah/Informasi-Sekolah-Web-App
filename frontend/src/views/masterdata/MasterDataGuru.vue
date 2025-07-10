@@ -4,7 +4,22 @@
 
     <Button label="Tambah Guru" icon="pi pi-plus" class="mb-3" @click="showAddDialog" />
 
-    <DataTable :value="gurus" responsiveLayout="scroll" stripedRows>
+    <div class="mb-3">
+      <span class="p-input-icon-left w-full md:w-1/3">
+        <i class="pi pi-search" />
+        <InputText
+          v-model="searchText"
+          placeholder="Cari Nama atau NRP/NIP"
+          class="w-full"
+        />
+      </span>
+    </div>
+
+    <DataTable
+      :value="selectedGurus"
+      responsiveLayout="scroll"
+      stripedRows
+    >
       <Column field="nrp_nip" header="NRP/NIP" />
       <Column field="nama" header="Nama" />
       <Column field="email" header="Email" />
@@ -21,16 +36,8 @@
     <Dialog v-model:visible="displayDialog" :header="editMode ? 'Edit Guru' : 'Tambah Guru'" modal :style="{ width: '40vw' }">
       <form @submit.prevent="submitGuru">
         <div class="p-fluid grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="field">
-            <label>NRP/NIP</label>
-            <InputText v-model="form.nrp_nip" />
-          </div>
-
-          <div class="field">
-            <label>Nama</label>
-            <InputText v-model="form.nama" />
-          </div>
-
+          <div class="field"><label>NRP/NIP</label><InputText v-model="form.nrp_nip" /></div>
+          <div class="field"><label>Nama</label><InputText v-model="form.nama" /></div>
           <div class="field">
             <label>Jenis Kelamin</label>
             <Dropdown
@@ -41,66 +48,18 @@
               placeholder="Pilih Jenis Kelamin"
             />
           </div>
-
-          <div class="field">
-            <label>Tempat Lahir</label>
-            <InputText v-model="form.tempat_lahir" />
-          </div>
-
-          <div class="field">
-            <label>Tanggal Lahir</label>
-            <Calendar v-model="form.tanggal_lahir" dateFormat="yy-mm-dd" showIcon />
-          </div>
-
-          <div class="field">
-            <label>Pendidikan</label>
-            <InputText v-model="form.pendidikan" />
-          </div>
-
-          <div class="field">
-            <label>Tahun Masuk</label>
-            <Calendar v-model="form.tahun_masuk" dateFormat="yy-mm-dd" showIcon />
-          </div>
-
-          <div class="field">
-            <label>Alamat</label>
-            <InputText v-model="form.alamat" />
-          </div>
-
-          <div class="field">
-            <label>RT/RW</label>
-            <InputText v-model="form.rt_rw" />
-          </div>
-
-          <div class="field">
-            <label>Dusun</label>
-            <InputText v-model="form.dusun" />
-          </div>
-
-          <div class="field">
-            <label>Kelurahan</label>
-            <InputText v-model="form.kelurahan" />
-          </div>
-
-          <div class="field">
-            <label>Kecamatan</label>
-            <InputText v-model="form.kecamatan" />
-          </div>
-
-          <div class="field">
-            <label>Kode Pos</label>
-            <InputText v-model="form.kode_pos" />
-          </div>
-
-          <div class="field">
-            <label>No. Telpon</label>
-            <InputText v-model="form.nomor_telpon" />
-          </div>
-
-          <div class="field">
-            <label>Email</label>
-            <InputText v-model="form.email" />
-          </div>
+          <div class="field"><label>Tempat Lahir</label><InputText v-model="form.tempat_lahir" /></div>
+          <div class="field"><label>Tanggal Lahir</label><Calendar v-model="form.tanggal_lahir" dateFormat="yy-mm-dd" showIcon /></div>
+          <div class="field"><label>Pendidikan</label><InputText v-model="form.pendidikan" /></div>
+          <div class="field"><label>Tahun Masuk</label><Calendar v-model="form.tahun_masuk" dateFormat="yy-mm-dd" showIcon /></div>
+          <div class="field"><label>Alamat</label><InputText v-model="form.alamat" /></div>
+          <div class="field"><label>RT/RW</label><InputText v-model="form.rt_rw" /></div>
+          <div class="field"><label>Dusun</label><InputText v-model="form.dusun" /></div>
+          <div class="field"><label>Kelurahan</label><InputText v-model="form.kelurahan" /></div>
+          <div class="field"><label>Kecamatan</label><InputText v-model="form.kecamatan" /></div>
+          <div class="field"><label>Kode Pos</label><InputText v-model="form.kode_pos" /></div>
+          <div class="field"><label>No. Telpon</label><InputText v-model="form.nomor_telpon" /></div>
+          <div class="field"><label>Email</label><InputText v-model="form.email" /></div>
         </div>
 
         <div class="mt-6 grid grid-cols-2 gap-4 justify-end">
@@ -113,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
@@ -124,10 +83,10 @@ import Dropdown from 'primevue/dropdown'
 import axios from 'axios'
 
 const gurus = ref([])
+const searchText = ref('')
 const displayDialog = ref(false)
 const editMode = ref(false)
 const selectedId = ref(null)
-
 const jenisKelaminList = ref([])
 
 const form = ref({
@@ -146,6 +105,18 @@ const form = ref({
   nomor_telpon: '',
   email: '',
   jenis_kelamin_id: null
+})
+
+const selectedGurus = computed(() => {
+  if (!searchText.value) return gurus.value
+
+  const keyword = searchText.value.toLowerCase()
+  return gurus.value.filter((guru) => {
+    return (
+      guru.nama?.toLowerCase().includes(keyword) ||
+      guru.nrp_nip?.toLowerCase().includes(keyword)
+    )
+  })
 })
 
 const getData = async () => {
@@ -241,22 +212,18 @@ onMounted(() => {
 .manajemen-guru .field {
   margin-bottom: 1rem;
 }
-
 .manajemen-guru label {
   font-weight: 600;
   margin-bottom: 0.5rem;
   display: block;
 }
-
 .manajemen-guru input,
 .manajemen-guru textarea {
   width: 100%;
 }
-
 .manajemen-guru .p-button-text {
   color: #666;
 }
-
 .manajemen-guru .p-button-danger {
   color: #fff;
   background-color: #e53935;

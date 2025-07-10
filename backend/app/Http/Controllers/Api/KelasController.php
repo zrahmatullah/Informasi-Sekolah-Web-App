@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Kelas;
+use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Http\Controllers\Controller;
@@ -48,7 +49,6 @@ class KelasController extends Controller
     {
         $kelas = Kelas::find($id);
 
-
         if (!$kelas) {
             return response()->json(['message' => 'Kelas tidak ditemukan'], 404);
         }
@@ -64,11 +64,18 @@ class KelasController extends Controller
             'guru_id' => 'nullable|exists:gurus,id',
         ]);
 
+
+        $guruChanged = $validated['guru_id'] !== $kelas->guru_id;
+
         $kelas->nama_kelas = $validated['nama_kelas'];
         $kelas->kode_kelas = $validated['kode_kelas'];
         $kelas->guru_id = $validated['guru_id'] ?? null;
         $kelas->save();
 
+
+        if ($guruChanged) {
+            Siswa::where('kelas_id', $kelas->id)->update(['guru_id' => $validated['guru_id']]);
+        }
 
         return response()->json($kelas->load('guru'));
     }
