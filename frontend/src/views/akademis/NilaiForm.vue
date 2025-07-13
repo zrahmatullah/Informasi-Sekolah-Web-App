@@ -4,7 +4,7 @@
 
     <div class="p-fluid p-formgrid p-grid">
       <div class="p-field p-col-12 p-md-4">
-        <label for="kelas">Kelas</label>
+        <label>Kelas</label>
         <Dropdown
           v-model="selectedKelasId"
           :options="kelasList"
@@ -17,7 +17,7 @@
       </div>
 
       <div class="p-field p-col-12 p-md-4">
-        <label for="mapel">Mata Pelajaran</label>
+        <label>Mata Pelajaran</label>
         <Dropdown
           v-model="selectedMapelId"
           :options="mapelList"
@@ -29,7 +29,7 @@
       </div>
 
       <div class="p-field p-col-12 p-md-4">
-        <label for="tahunPelajaran">Tahun Pelajaran</label>
+        <label>Tahun Pelajaran</label>
         <Dropdown
           v-model="selectedTahunPelajaranId"
           :options="tahunPelajaranList"
@@ -72,16 +72,16 @@
           </template>
         </Column>
         <Column header="Aksi" style="width: 150px">
-        <template #body="{ data }">
-          <Button
-            :label="data.nilai_tugas !== null && data.nilai_uts !== null && data.nilai_ujian !== null ? 'Edit Nilai' : 'Input Nilai'"
-            icon="pi pi-pencil"
-            class="p-button-sm"
-            :class="data.nilai_tugas !== null && data.nilai_uts !== null && data.nilai_ujian !== null ? 'p-button-warning' : 'p-button-info'"
-            @click="showInputDialog(data)"
-          />
-        </template>
-      </Column>
+          <template #body="{ data }">
+            <Button
+              :label="data.nilai_tugas !== null ? 'Edit Nilai' : 'Input Nilai'"
+              icon="pi pi-pencil"
+              class="p-button-sm"
+              :class="data.nilai_tugas !== null ? 'p-button-warning' : 'p-button-info'"
+              @click="showInputDialog(data)"
+            />
+          </template>
+        </Column>
       </DataTable>
     </div>
 
@@ -163,7 +163,7 @@ const fetchDropdownData = async () => {
       selectedKelasId.value = kelasList.value[0].id
     }
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Gagal memuat data dropdown.' })
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Gagal memuat data dropdown.', life:3000 })
   }
 }
 
@@ -174,11 +174,16 @@ const checkAndFetchNilai = async () => {
     const res = await axios.get(
       `http://127.0.0.1:8000/api/nilai/kelas/${selectedKelasId.value}/matapelajaran/${selectedMapelId.value}/tahun/${selectedTahunPelajaranId.value}`
     )
+
     if (res.data && res.data.length > 0) {
-      nilaiList.value = res.data
+      nilaiList.value = res.data.map(item => ({
+        ...item,
+        id: item.id ?? null
+      }))
     } else {
       const siswaRes = await axios.get(`http://127.0.0.1:8000/api/siswa/kelas/${selectedKelasId.value}`)
       nilaiList.value = siswaRes.data.map(siswa => ({
+        id: null,
         siswa_id: siswa.id,
         nama_lengkap_siswa: siswa.nama_lengkap_siswa,
         mata_pelajaran_id: selectedMapelId.value,
@@ -192,7 +197,7 @@ const checkAndFetchNilai = async () => {
       }))
     }
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Gagal mengambil data nilai/siswa.' })
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Gagal mengambil data nilai/siswa.' , life:3000})
   }
 }
 
@@ -219,41 +224,41 @@ const tentukanGrade = (rata) => {
 }
 
 const simpanNilaiDialog = async () => {
-  const siswa = selectedSiswa.value;
+  const siswa = { ...selectedSiswa.value }
 
   if (siswa.nilai_tugas == null || siswa.nilai_uts == null || siswa.nilai_ujian == null) {
-    toast.add({ severity: 'warn', summary: 'Lengkapi Nilai', detail: 'Nilai belum lengkap!' });
-    return;
+    toast.add({ severity: 'warn', summary: 'Lengkapi Nilai', detail: 'Nilai belum lengkap!' , life:3000})
+    return
   }
 
-  siswa.mata_pelajaran_id = selectedMapelId.value;
-  siswa.kelas_id = selectedKelasId.value;
-  siswa.tahun_pelajaran_id = selectedTahunPelajaranId.value;
-  siswa.rata_rata = parseFloat(hitungRataRata(siswa.nilai_tugas, siswa.nilai_uts, siswa.nilai_ujian));
-  siswa.grade = tentukanGrade(siswa.rata_rata);
+  siswa.mata_pelajaran_id = selectedMapelId.value
+  siswa.kelas_id = selectedKelasId.value
+  siswa.tahun_pelajaran_id = selectedTahunPelajaranId.value
+  siswa.rata_rata = parseFloat(hitungRataRata(siswa.nilai_tugas, siswa.nilai_uts, siswa.nilai_ujian))
+  siswa.grade = tentukanGrade(siswa.rata_rata)
 
-  const isEdit = siswa.nilai_tugas_awal !== undefined || siswa.nilai_tugas !== null;
+  const isEdit = !!siswa.id && typeof siswa.id === 'number'
 
   try {
     if (isEdit) {
-      await axios.put('http://127.0.0.1:8000/api/nilai', siswa);
+      await axios.put(`http://127.0.0.1:8000/api/nilai`, siswa)
     } else {
-      await axios.post('http://127.0.0.1:8000/api/nilai', siswa);
+      delete siswa.id
+      await axios.post(`http://127.0.0.1:8000/api/nilai`, siswa)
     }
 
-    const index = nilaiList.value.findIndex(n => n.siswa_id === siswa.siswa_id);
+    const index = nilaiList.value.findIndex(n => n.siswa_id === siswa.siswa_id)
     if (index !== -1) {
-      nilaiList.value[index] = { ...siswa };
+      nilaiList.value[index] = { ...siswa }
     }
 
-    toast.add({ severity: 'success', summary: 'Berhasil', detail: isEdit ? 'Nilai diperbarui.' : 'Nilai disimpan.' });
-    dialogVisible.value = false;
+    toast.add({ severity: 'success', summary: 'Berhasil', detail: isEdit ? 'Nilai diperbarui.' : 'Nilai disimpan.' , life:1500})
+    dialogVisible.value = false
   } catch (err) {
-    const errorMessage = err.response?.data?.message || 'Gagal menyimpan nilai.';
-    toast.add({ severity: 'error', summary: 'Error', detail: errorMessage });
+    const errorMessage = err.response?.data?.message || 'Gagal menyimpan nilai.'
+    toast.add({ severity: 'error', summary: 'Error', detail: errorMessage })
   }
-};
-
+}
 </script>
 
 <style scoped>

@@ -11,7 +11,9 @@
           <li @click="showForm('nilai-form')"><i class="fa fa-pen-square"></i> Input Nilai Siswa</li>
           <li @click="showForm('nilai-all-siswa')"><i class="fa fa-chart-bar"></i> Nilai Keseluruhan Siswa</li>
           <li @click="showForm('nilai-all')"><i class="fa fa-chart-bar"></i> Nilai Keseluruhan Siswa</li>
+          <li @click="showForm('nilai-grouper')"><i class="fa fa-chart-bar"></i> Raport</li>
           <li @click="showForm('tanggapan')"><i class="fa fa-comment-dots"></i> Kritik Dan Saran</li>
+          <li @click="showForm('cetaktanggapan')"><i class="fa fa-comment-dots"></i> Laporan Cetak Kritik Saran</li>
       </ul>
     </div>
 
@@ -64,8 +66,14 @@
       <div v-if="selectedForm === 'nilai-all'" class="form-container">
         <NilaiAll />
       </div>
+      <div v-if="selectedForm === 'nilai-grouper'" class="form-container">
+        <CetakRaportGroup />
+      </div>
       <div v-if="selectedForm === 'tanggapan'" class="form-container">
         <Tanggapan />
+      </div>
+      <div v-if="selectedForm === 'cetaktanggapan'" class="form-container">
+        <CetakTanggapan />
       </div>
     </div>
   </div>
@@ -85,6 +93,8 @@ import NilaiForm from '../akademis/NilaiForm.vue'
 import NilaiSiswaPerGuru from '../masterdata/NilaiSiswaPerGuru.vue'
 import NilaiAll from '../masterdata/NilaiSiswaAll.vue'
 import Tanggapan from '../forms/Tanggapan.vue'
+import CetakTanggapan from '../forms/CetakTanggapan.vue'
+import CetakRaportGroup from '../masterdata/AllLaporanSiswaPerKelas.vue'
 
 const selectedForm = ref('dashboard-guru')
 const dropdownVisible = ref(false)

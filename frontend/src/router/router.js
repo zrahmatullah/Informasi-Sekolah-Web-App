@@ -23,8 +23,10 @@ import JadwalPelajaranPerGuruKelas from '../views/masterdata/JadwalPelajaranPerG
 import JadwalPelajaranPerSiswa from '../views/masterdata/JadwalPelajaranPerSiswa.vue';
 import NilaiSiswaPerGuru from '../views/masterdata/NilaiSiswaPerGuru.vue';
 import NilaiSiswaByLogin from '../views/masterdata/NilaiSiswaByLogin.vue';
+import CetakRaportGroup from '../views/masterdata/AllLaporanSiswaPerKelas.vue';
 import KritikSaranSiswa from '../views/forms/KritikSaranSiswa.vue';
 import Tanggapan from '../views/forms/Tanggapan.vue';
+import CetakTanggapan from '../views/forms/CetakTanggapan.vue';
 import TahunPelaharan from '../views/masterdata/TahunPelajaran.vue';
 import NilaiAll from '../views/masterdata/NilaiSiswaAll.vue';
 import MapSiswaToKelas from '../views/forms/MapSiswaToKelas.vue';
@@ -56,9 +58,11 @@ const routes = [
   { path: '/masterdata/nilaisiswabylogin', component: NilaiSiswaByLogin },
   { path: '/forms/kritiksaransiswa', component: KritikSaranSiswa },
   { path: '/forms/tanggapan', component: Tanggapan },
+  { path: '/forms/cetaktanggapan', component: CetakTanggapan },
   { path: '/masterdata/tahunpelajaran', component: TahunPelaharan },
   { path: '/masterdata/nilaiall', component: NilaiAll },
   { path: '/forms/mapsiswatokelas', component: MapSiswaToKelas },
+  { path: '/masterdata/cetakgroup', component: CetakRaportGroup },
 ];
 
 const router = createRouter({

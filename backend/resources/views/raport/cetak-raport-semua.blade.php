@@ -36,6 +36,8 @@
                     <th>Nilai UTS</th>
                     <th>Nilai Ujian</th>
                     <th>Rata-rata</th>
+                    <th>Grade</th>
+                    <th>Status Akademis</th>
                 </tr>
             </thead>
             <tbody>
@@ -46,13 +48,19 @@
 
                 @if($data['nilai']->isEmpty())
                     <tr>
-                        <td colspan="6"><em>Belum ada nilai yang diinput.</em></td>
+                        <td colspan="8"><em>Belum ada nilai yang diinput.</em></td>
                     </tr>
                 @else
                     @foreach($data['nilai'] as $index => $nilai)
                         @php
                             $rata = ($nilai->nilai_tugas + $nilai->nilai_uts + $nilai->nilai_ujian) / 3;
                             $totalRata += $rata;
+                            $statusAkademis = match ($nilai->grade) {
+                                'A', 'B' => 'Lulus',
+                                'C', 'D' => 'Remedial',
+                                'E'      => 'Tidak Lulus',
+                                default  => '-',
+                            };
                         @endphp
                         <tr>
                             <td>{{ $index + 1 }}</td>
@@ -61,6 +69,8 @@
                             <td>{{ $nilai->nilai_uts }}</td>
                             <td>{{ $nilai->nilai_ujian }}</td>
                             <td>{{ number_format($rata, 2) }}</td>
+                            <td>{{ $nilai->grade }}</td>
+                            <td>{{ $statusAkademis }}</td>
                         </tr>
                     @endforeach
                 @endif
@@ -71,6 +81,7 @@
                     <tr>
                         <th colspan="5" style="text-align: right;">Rata-rata Keseluruhan</th>
                         <th>{{ number_format($totalRata / $jumlahMapel, 2) }}</th>
+                        <th colspan="2"></th>
                     </tr>
                 </tfoot>
             @endif

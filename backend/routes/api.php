@@ -119,7 +119,8 @@ Route::middleware('jwt.auth')->prefix('nilai')->group(function () {
     Route::get('/', [NilaiSiswaController::class, 'index']);
     Route::get('/siswa/{siswa_id}', [NilaiSiswaController::class, 'showBySiswa']);
     Route::post('/', [NilaiSiswaController::class, 'store']);
-    Route::put('/', [NilaiSiswaController::class, 'update']);
+    // Route::put('/', [NilaiSiswaController::class, 'update']);
+    Route::put('/{id}', [NilaiSiswaController::class, 'update']);
     Route::post('/batch', [NilaiSiswaController::class, 'storeBatch']);
 });
 
@@ -198,8 +199,13 @@ Route::middleware('jwt.auth')->prefix('kritik-saran')->group(function () {
 });
 
 Route::get('/cetak-raport/{siswaId}/{tahunPelajaranId}', [RaportSiswaController::class, 'cetakRaport']);
+
+Route::middleware('auth:api')->get('/cetak-raport/{tahunPelajaranId}', [RaportSiswaController::class, 'cetakRaportByTahun']);
+
 Route::get('/cetak-raport-login/{tahunPelajaranId}', [RaportSiswaController::class, 'cetakRaportLogin']);
+
 Route::post('/raport/cetak-semua', [RaportSiswaController::class, 'cetakRaportSemuaSiswaKelas']);
+
 
 
 Route::middleware(['auth:api'])->group(function () {

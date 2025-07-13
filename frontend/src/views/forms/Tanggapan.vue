@@ -3,10 +3,10 @@
     <Toast />
     <h2 class="text-xl font-bold mb-3">Tanggapan Kritik dan Saran</h2>
 
-    <Button label="Cetak Semua" icon="pi pi-print" class="mb-3" @click="showCetakDialog = true" />
+    <!-- <Button label="Cetak Semua" icon="pi pi-print" class="mb-3" @click="showCetakDialog = true" /> -->
 
     <!-- Dialog Cetak -->
-    <Dialog v-model:visible="showCetakDialog" header="Cetak Kritik dan Saran" :modal="true" class="w-full md:w-1/3 rounded-lg">
+    <!-- <Dialog v-model:visible="showCetakDialog" header="Cetak Kritik dan Saran" :modal="true" class="w-full md:w-1/3 rounded-lg">
       <div class="p-3 space-y-4">
         <div>
           <label for="rangeTanggal" class="block text-sm font-medium text-gray-700 mb-1">Pilih Rentang Tanggal</label>
@@ -27,7 +27,7 @@
           <Button label="Cetak" icon="pi pi-print" @click="submitCetak" />
         </div>
       </template>
-    </Dialog>
+    </Dialog> -->
 
     <!-- Dialog Tanggapan -->
     <Dialog v-model:visible="showDialog" header="Tanggapi Kritik dan Saran" :modal="true" class="w-full md:w-1/2 rounded-lg">

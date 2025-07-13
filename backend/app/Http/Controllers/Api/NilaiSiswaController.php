@@ -25,6 +25,7 @@ class NilaiSiswaController extends Controller
         return 'E';
     }
 
+
     public function store(Request $request)
     {
         $request->validate([
@@ -36,51 +37,41 @@ class NilaiSiswaController extends Controller
             'nilai_ujian' => 'required|integer|min:0|max:100',
         ]);
 
-
-        $existing = NilaiSiswa::where('siswa_id', $request->siswa_id)
-            ->where('mata_pelajaran_id', $request->mata_pelajaran_id)
-            ->where('tahun_pelajaran_id', $request->tahun_pelajaran_id)
-            ->first();
-
-        if ($existing) {
-            return response()->json([
-                'message' => 'Data nilai sudah ada. Gunakan fitur edit untuk memperbarui.'
-            ], 409);
-        }
-
         $rata2 = $this->hitungRataRata($request->nilai_tugas, $request->nilai_uts, $request->nilai_ujian);
         $grade = $this->getGrade($rata2);
 
-        NilaiSiswa::create([
-            'siswa_id' => $request->siswa_id,
-            'mata_pelajaran_id' => $request->mata_pelajaran_id,
-            'tahun_pelajaran_id' => $request->tahun_pelajaran_id,
-            'nilai_tugas' => $request->nilai_tugas,
-            'nilai_uts' => $request->nilai_uts,
-            'nilai_ujian' => $request->nilai_ujian,
-            'rata_rata' => $rata2,
-            'grade' => $grade,
-        ]);
+        $nilai = NilaiSiswa::updateOrCreate(
+            [
+                'siswa_id' => $request->siswa_id,
+                'mata_pelajaran_id' => $request->mata_pelajaran_id,
+                'tahun_pelajaran_id' => $request->tahun_pelajaran_id,
+            ],
+            [
+                'nilai_tugas' => $request->nilai_tugas,
+                'nilai_uts' => $request->nilai_uts,
+                'nilai_ujian' => $request->nilai_ujian,
+                'rata_rata' => $rata2,
+                'grade' => $grade,
+            ]
+        );
 
-        return response()->json(['message' => 'Nilai berhasil disimpan.']);
+        $message = $nilai->wasRecentlyCreated ? 'Nilai berhasil disimpan.' : 'Nilai berhasil diperbarui.';
+        return response()->json(['message' => $message]);
     }
 
-
-    public function update(Request $request)
+    public function update(Request $request, $id)
     {
         $request->validate([
-            'siswa_id' => 'required|exists:siswas,id',
-            'mata_pelajaran_id' => 'required|exists:mata_pelajarans,id',
-            'tahun_pelajaran_id' => 'required|exists:tahun_pelajaran,id',
             'nilai_tugas' => 'required|integer|min:0|max:100',
             'nilai_uts' => 'required|integer|min:0|max:100',
             'nilai_ujian' => 'required|integer|min:0|max:100',
         ]);
 
-        $nilai = NilaiSiswa::where('siswa_id', $request->siswa_id)
-            ->where('mata_pelajaran_id', $request->mata_pelajaran_id)
-            ->where('tahun_pelajaran_id', $request->tahun_pelajaran_id)
-            ->firstOrFail();
+        $nilai = NilaiSiswa::find($id);
+
+        if (!$nilai) {
+            return response()->json(['message' => 'Data nilai tidak ditemukan.'], 404);
+        }
 
         $rata2 = $this->hitungRataRata($request->nilai_tugas, $request->nilai_uts, $request->nilai_ujian);
         $grade = $this->getGrade($rata2);
@@ -95,6 +86,9 @@ class NilaiSiswaController extends Controller
 
         return response()->json(['message' => 'Nilai berhasil diperbarui.']);
     }
+
+
+
     public function storeBatch(Request $request)
     {
         $request->validate([
@@ -130,6 +124,7 @@ class NilaiSiswaController extends Controller
         return response()->json(['message' => 'Batch nilai berhasil disimpan.']);
     }
 
+
     public function index()
     {
         $data = NilaiSiswa::with(['siswa', 'mataPelajaran', 'tahunPelajaran'])
@@ -138,6 +133,7 @@ class NilaiSiswaController extends Controller
 
         return response()->json($data);
     }
+
 
     public function showBySiswa($siswa_id)
     {
@@ -148,9 +144,9 @@ class NilaiSiswaController extends Controller
         return response()->json($data);
     }
 
+
     public function getNilaiByKelasMapel($kelasId, $mapelId, $tahunId)
     {
-
         if (!TahunPelajaran::find($tahunId)) {
             return response()->json(['message' => 'Tahun pelajaran tidak ditemukan'], 404);
         }
@@ -164,6 +160,7 @@ class NilaiSiswaController extends Controller
                 ->first();
 
             return [
+                'id' => $nilai?->id,
                 'siswa_id' => $s->id,
                 'nama_lengkap_siswa' => $s->nama_lengkap_siswa,
                 'mata_pelajaran_id' => $mapelId,
@@ -178,6 +175,8 @@ class NilaiSiswaController extends Controller
 
         return response()->json($result);
     }
+
+
     public function getNilaiBySiswaDanTahun($siswaId, $tahunId)
     {
         $nilai = NilaiSiswa::with('mataPelajaran')
@@ -185,9 +184,8 @@ class NilaiSiswaController extends Controller
             ->where('tahun_pelajaran_id', $tahunId)
             ->get()
             ->map(function ($item) {
-                $item->nama_mapel = $item->mataPelajaran->nama_mapel ?? '-';
                 return [
-                    'nama_mapel' => $item->nama_mapel,
+                    'nama_mapel' => $item->mataPelajaran->nama_mapel ?? '-',
                     'nilai_tugas' => $item->nilai_tugas ?? 0,
                     'nilai_uts' => $item->nilai_uts ?? 0,
                     'nilai_ujian' => $item->nilai_ujian ?? 0,
@@ -196,12 +194,13 @@ class NilaiSiswaController extends Controller
                 ];
             });
 
-        return response()->json($nilai, 200);
+        return response()->json($nilai);
     }
+
+
     public function getNilaiSiswaLogin($tahunId)
     {
         $user = Auth::user();
-
         if (!$user || !$user->siswa) {
             return response()->json(['message' => 'Siswa tidak ditemukan untuk user ini'], 404);
         }
@@ -213,9 +212,8 @@ class NilaiSiswaController extends Controller
             ->where('tahun_pelajaran_id', $tahunId)
             ->get()
             ->map(function ($item) {
-                $item->nama_mapel = $item->mataPelajaran->nama_mapel ?? '-';
                 return [
-                    'nama_mapel' => $item->nama_mapel,
+                    'nama_mapel' => $item->mataPelajaran->nama_mapel ?? '-',
                     'nilai_tugas' => $item->nilai_tugas ?? 0,
                     'nilai_uts' => $item->nilai_uts ?? 0,
                     'nilai_ujian' => $item->nilai_ujian ?? 0,
@@ -224,6 +222,6 @@ class NilaiSiswaController extends Controller
                 ];
             });
 
-        return response()->json($nilai, 200);
+        return response()->json($nilai);
     }
 }
