@@ -44,6 +44,15 @@
                 @php
                     $totalRata = 0;
                     $jumlahMapel = count($data['nilai']);
+
+                    function getStatusAkademis($grade) {
+                        return match ($grade) {
+                            'A', 'B' => 'Lulus',
+                            'C', 'D' => 'Remedial',
+                            'E'      => 'Tidak Lulus',
+                            default  => '-',
+                        };
+                    }
                 @endphp
 
                 @if($data['nilai']->isEmpty())
@@ -53,14 +62,8 @@
                 @else
                     @foreach($data['nilai'] as $index => $nilai)
                         @php
-                            $rata = ($nilai->nilai_tugas + $nilai->nilai_uts + $nilai->nilai_ujian) / 3;
-                            $totalRata += $rata;
-                            $statusAkademis = match ($nilai->grade) {
-                                'A', 'B' => 'Lulus',
-                                'C', 'D' => 'Remedial',
-                                'E'      => 'Tidak Lulus',
-                                default  => '-',
-                            };
+                            $totalRata += $nilai->rata_rata;
+                            $statusAkademis = getStatusAkademis($nilai->grade);
                         @endphp
                         <tr>
                             <td>{{ $index + 1 }}</td>
@@ -68,7 +71,7 @@
                             <td>{{ $nilai->nilai_tugas }}</td>
                             <td>{{ $nilai->nilai_uts }}</td>
                             <td>{{ $nilai->nilai_ujian }}</td>
-                            <td>{{ number_format($rata, 2) }}</td>
+                            <td>{{ number_format($nilai->rata_rata, 2) }}</td>
                             <td>{{ $nilai->grade }}</td>
                             <td>{{ $statusAkademis }}</td>
                         </tr>

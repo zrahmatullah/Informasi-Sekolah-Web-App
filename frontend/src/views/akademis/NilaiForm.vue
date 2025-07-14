@@ -241,7 +241,7 @@ const simpanNilaiDialog = async () => {
 
   try {
     if (isEdit) {
-      await axios.put(`http://127.0.0.1:8000/api/nilai`, siswa)
+      await axios.put(`http://127.0.0.1:8000/api/nilai/${siswa.id}`, siswa)
     } else {
       delete siswa.id
       await axios.post(`http://127.0.0.1:8000/api/nilai`, siswa)

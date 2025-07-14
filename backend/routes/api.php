@@ -115,14 +115,24 @@ Route::middleware('jwt.auth')->prefix('matapelajaran')->group(function () {
 
 Route::middleware('jwt.auth')->get('siswa/{id}/mapel', [SiswaMapelController::class, 'index']);
 
+// Route::middleware('jwt.auth')->prefix('nilai')->group(function () {
+//     Route::get('/', [NilaiSiswaController::class, 'index']);
+//     Route::get('/siswa/{siswa_id}', [NilaiSiswaController::class, 'showBySiswa']);
+//     Route::post('/', [NilaiSiswaController::class, 'store']);
+//     Route::put('/nilai/{id}', [NilaiSiswaController::class, 'update']);
+//     // Route::put('/', [NilaiSiswaController::class, 'update']);
+//     Route::put('/{id}', [NilaiSiswaController::class, 'update']);
+//     Route::post('/batch', [NilaiSiswaController::class, 'storeBatch']);
+// });
+
 Route::middleware('jwt.auth')->prefix('nilai')->group(function () {
     Route::get('/', [NilaiSiswaController::class, 'index']);
     Route::get('/siswa/{siswa_id}', [NilaiSiswaController::class, 'showBySiswa']);
     Route::post('/', [NilaiSiswaController::class, 'store']);
-    // Route::put('/', [NilaiSiswaController::class, 'update']);
     Route::put('/{id}', [NilaiSiswaController::class, 'update']);
     Route::post('/batch', [NilaiSiswaController::class, 'storeBatch']);
 });
+
 
 Route::prefix('nilai')->group(function () {
     Route::get('/kelas/{kelasId}/matapelajaran/{mapelId}/tahun/{tahunId}', [NilaiSiswaController::class, 'getNilaiByKelasMapel']);
