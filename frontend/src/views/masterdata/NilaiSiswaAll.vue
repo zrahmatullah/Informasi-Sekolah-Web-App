@@ -81,17 +81,23 @@ const cetakRaport = async () => {
       },
       {
         responseType: 'blob',
-        headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          Accept: 'application/pdf'
+        },
+        withCredentials: true // penting jika supports_credentials = true
       }
     )
+
     const blob = new Blob([res.data], { type: 'application/pdf' })
-    const url = URL.createObjectURL(blob)
+    const url = window.URL.createObjectURL(blob)
     window.open(url, '_blank')
   } catch (error) {
     console.error('Gagal mencetak raport:', error)
     alert('Terjadi kesalahan saat mencetak raport.')
   }
 }
+
 
 onMounted(() => {
   fetchKelasLogin()

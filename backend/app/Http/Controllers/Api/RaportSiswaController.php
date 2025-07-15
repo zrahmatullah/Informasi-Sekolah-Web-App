@@ -11,6 +11,7 @@ use App\Models\MataPelajaran;
 use App\Models\TahunPelajaran;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 
@@ -173,40 +174,50 @@ class RaportSiswaController extends Controller
     }
     public function cetakRaportSemuaSiswaKelas(Request $request)
     {
+        Log::info('Start cetakRaportSemuaSiswaKelas');
+
         $request->validate([
             'kelas_id' => 'required|exists:kelas,id',
             'tahun_pelajaran_id' => 'required|exists:tahun_pelajaran,id',
         ]);
 
-        $kelasId = $request->kelas_id;
-        $tahunPelajaranId = $request->tahun_pelajaran_id;
+        try {
+            $kelasId = $request->kelas_id;
+            $tahunPelajaranId = $request->tahun_pelajaran_id;
 
-        $kelas = Kelas::findOrFail($kelasId);
-        $tahun = TahunPelajaran::findOrFail($tahunPelajaranId);
+            $kelas = Kelas::findOrFail($kelasId);
+            $tahun = TahunPelajaran::findOrFail($tahunPelajaranId);
+            $siswas = Siswa::where('kelas_id', $kelasId)->get();
 
-        $siswas = Siswa::where('kelas_id', $kelasId)->get();
+            $dataRaport = [];
 
-        $dataRaport = [];
+            foreach ($siswas as $siswa) {
+                $nilai = NilaiSiswa::with('mataPelajaran')
+                    ->where('siswa_id', $siswa->id)
+                    ->where('tahun_pelajaran_id', $tahunPelajaranId)
+                    ->get();
 
-        foreach ($siswas as $siswa) {
-            $nilai = NilaiSiswa::with('mataPelajaran')
-                ->where('siswa_id', $siswa->id)
-                ->where('tahun_pelajaran_id', $tahunPelajaranId)
-                ->get();
+                $dataRaport[] = [
+                    'siswa' => $siswa,
+                    'nilai' => $nilai,
+                    'kosong' => $nilai->isEmpty(),
+                ];
+            }
 
-            $dataRaport[] = [
-                'siswa' => $siswa,
-                'nilai' => $nilai,
-                'kosong' => $nilai->isEmpty(),
-            ];
+            Log::info('Data berhasil dikumpulkan');
+
+            $pdf = Pdf::loadView('raport.cetak-raport-semua', [
+                'dataRaport' => $dataRaport,
+                'tahun' => $tahun,
+                'kelas' => $kelas,
+            ]);
+
+            Log::info('PDF berhasil dibuat');
+
+            return $pdf->stream("raport-semua-siswa.pdf");
+        } catch (\Exception $e) {
+            Log::error('Gagal cetak raport: ' . $e->getMessage());
+            return response()->json(['error' => 'Gagal mencetak raport: ' . $e->getMessage()], 500);
         }
-
-        $pdf = Pdf::loadView('raport.cetak-raport-semua', [
-            'dataRaport' => $dataRaport,
-            'tahun' => $tahun,
-            'kelas' => $kelas,
-        ]);
-
-        return $pdf->stream("raport-semua-siswa.pdf");
     }
 }

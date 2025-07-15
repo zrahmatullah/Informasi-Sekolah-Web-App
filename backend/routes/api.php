@@ -216,8 +216,6 @@ Route::get('/cetak-raport-login/{tahunPelajaranId}', [RaportSiswaController::cla
 
 Route::post('/raport/cetak-semua', [RaportSiswaController::class, 'cetakRaportSemuaSiswaKelas']);
 
-
-
 Route::middleware(['auth:api'])->group(function () {
     Route::get('/siswa/raport/cetak/{tahunId}', [RaportSiswaLoginController::class, 'cetak']);
     Route::get('/cetak/kritik-saran', [CetakKritikSaranController::class, 'cetakSemua']);
