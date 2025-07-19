@@ -24,15 +24,34 @@ class DashboardController extends Controller
 
         $totalKritikSaran = KritikSaran::count();
 
-        $kritikSaranPerBulan = KritikSaran::selectRaw("TO_CHAR(created_at, 'Mon') as bulan, EXTRACT(MONTH FROM created_at) as bulan_angka, COUNT(*) as total")
-            ->groupBy('bulan', 'bulan_angka')
-            ->orderBy('bulan_angka')
-            ->pluck('total', 'bulan');;
+        // $kritikSaranPerKelas = DB::table('kritik_sarans')
+        //     ->join('siswas', 'kritik_sarans.siswa_id', '=', 'siswas.id')
+        //     ->join('kelas', 'siswas.kelas_id', '=', 'kelas.id')
+        //     ->select('kelas.nama_kelas', DB::raw('COUNT(*) as total'))
+        //     ->groupBy('kelas.nama_kelas')
+        //     ->orderBy('kelas.nama_kelas')
+        //     ->pluck('total', 'kelas.nama_kelas');
 
-        $siswaPerKelas = Siswa::join('kelas', 'siswas.kelas_id', '=', 'kelas.id')
-            ->selectRaw('kelas.nama_kelas as kelas, COUNT(siswas.id) as total')
-            ->groupBy('kelas.nama_kelas')
-            ->pluck('total', 'kelas')
+                // $siswaPerKelas = Siswa::join('kelas', 'siswas.kelas_id', '=', 'kelas.id')
+        //     ->selectRaw('kelas.nama_kelas as kelas, COUNT(siswas.id) as total')
+        //     ->groupBy('kelas.nama_kelas')
+        //     ->pluck('total', 'kelas')
+        //     ->toArray();
+
+        $kritikSaranPerKelas = DB::table('kelas')
+            ->leftJoin('siswas', 'siswas.kelas_id', '=', 'kelas.id')
+            ->leftJoin('kritik_sarans', 'kritik_sarans.siswa_id', '=', 'siswas.id')
+            ->select('kelas.nama_kelas', DB::raw('COALESCE(COUNT(kritik_sarans.id), 0) as total'))
+            ->groupBy('kelas.id','kelas.nama_kelas')
+            ->orderBy('kelas.id','asc')
+            ->get();
+
+        $siswaPerKelas = DB::table('kelas')
+            ->leftJoin('siswas', 'siswas.kelas_id', '=', 'kelas.id')
+            ->select('kelas.nama_kelas', DB::raw('COUNT(siswas.id) as total'))
+            ->groupBy('kelas.id', 'kelas.nama_kelas')
+            ->orderBy('kelas.id', 'asc')
+            ->pluck('total', 'kelas.nama_kelas')
             ->toArray();
 
         $pengumuman = DB::table('tanggal_liburs')
@@ -47,7 +66,7 @@ class DashboardController extends Controller
             'totalSiswa' => $totalSiswa,
             'totalWaliKelas' => $totalWaliKelas,
             'totalKritikSaran' => $totalKritikSaran,
-            'kritikSaranPerBulan' => $kritikSaranPerBulan,
+            'kritikSaranPerKelas' => $kritikSaranPerKelas,
             'siswaPerKelas' => $siswaPerKelas,
             'pengumuman' => $pengumuman,
         ]);

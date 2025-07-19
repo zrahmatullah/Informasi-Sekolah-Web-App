@@ -180,12 +180,13 @@ Route::middleware('jwt.auth')->prefix('tanggal-libur')->group(function () {
     Route::delete('{id}', [TanggalLiburController::class, 'destroy']);
 });
 
+Route::get('surat-edaran/download/{filename}', [SuratEdaranController::class, 'downloadByFilename'])->name('download.surat');
 Route::middleware('jwt.auth')->prefix('surat-edaran')->group(function () {
     Route::post('upload', [SuratEdaranController::class, 'upload']);
     Route::get('kelas/{kelasId}', [SuratEdaranController::class, 'getSiswaByKelas']);
     Route::post('kirim-per-kelas', [SuratEdaranController::class, 'kirimPerKelas']);
     Route::post('kirim-per-siswa', [SuratEdaranController::class, 'kirimPerSiswa']);
-    Route::get('download/{filename}', [SuratEdaranController::class, 'download']);
+    // Route::get('download/{filename}', [SuratEdaranController::class, 'downloadByFilename'])->name('download.surat');
     Route::post('kirim', [SuratEdaranController::class, 'kirim']);
 });
 
@@ -225,3 +226,4 @@ Route::middleware(['auth:api'])->group(function () {
 Route::middleware(['auth:api'])->group(function () {
     Route::get('/siswa/raport/cetak/{tahunId}', [RaportSiswaLoginController::class, 'cetak']);
 });
+

@@ -152,28 +152,32 @@ const onKelasChange = () => {
 }
 
 const uploadSuratWithPrimevue = async (event) => {
-  const file = event.files?.[0]
-  if (!file) return
+  const file = event.files?.[0] || event.originalEvent?.target?.files?.[0];
+  if (!file) {
+    toast.add({ severity: 'error', summary: 'Gagal', detail: 'File tidak ditemukan', life: 3000 });
+    return;
+  }
 
-  const formData = new FormData()
-  formData.append('file', file)
+  const formData = new FormData();
+  formData.append('file', file);
 
   try {
     const res = await axios.post('http://127.0.0.1:8000/api/surat-edaran/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    })
+    });
 
-    uploadedFilePath.value = res.data.path
-    uploadedFileName.value = file.name
-    toast.add({ severity: 'success', summary: 'Sukses', detail: 'File berhasil diupload' ,life: 3000})
+    uploadedFilePath.value = res.data.path;
+    uploadedFileName.value = file.name;
+    toast.add({ severity: 'success', summary: 'Sukses', detail: 'File berhasil diupload', life: 3000 });
   } catch (error) {
     toast.add({
       severity: 'error',
       summary: 'Gagal Upload',
       detail: error.response?.data?.errors?.file?.[0] || 'Terjadi kesalahan saat upload',
-    })
+    });
   }
-}
+};
+
 
 const validasiSurat = () => {
   if (!judul.value || !selectedKelas.value) {

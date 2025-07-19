@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <div v-if="loading" class="loading">Loading </div>
+    <div v-if="loading" class="loading">Loading...</div>
     <div v-else>
       <div v-if="error" class="error">{{ error }}</div>
       <div v-else>
@@ -12,9 +12,9 @@
         </section>
         <section class="charts">
           <div class="chart-container">
-            <h3 class="chart-title">Statistik Kritik & Saran per Bulan</h3>
+            <h3 class="chart-title">Statistik Kritik & Saran per Kelas</h3>
             <p class="chart-description">
-              Grafik batang ini menampilkan jumlah kritik dan saran yang masuk setiap bulan sepanjang tahun.
+              Grafik batang ini menampilkan jumlah kritik dan saran yang masuk berdasarkan kelas.
             </p>
             <Chart
               v-if="kritikSaranChartData"
@@ -23,6 +23,7 @@
               :options="kritikSaranChartOptions"
             />
           </div>
+
           <div class="chart-container">
             <h3 class="chart-title">Distribusi Siswa per Kelas</h3>
             <p class="chart-description">
@@ -63,7 +64,7 @@ export default {
       loading: false,
       error: null,
       pengumuman: [],
-      kritikSaranPerBulan: {},
+      kritikSaranPerKelas: {},
       siswaPerKelas: {},
       kritikSaranChartData: null,
       kritikSaranChartOptions: null,
@@ -91,8 +92,12 @@ export default {
           { label: "TOTAL KRITIK SARAN", value: data.totalKritikSaran },
         ];
 
-        this.kritikSaranPerBulan = data.kritikSaranPerBulan;
-        this.siswaPerKelas = data.siswaPerKelas;
+        // this.kritikSaranPerKelas = data.kritikSaranPerKelas || {};
+        this.kritikSaranPerKelas = {};
+        data.kritikSaranPerKelas.forEach(item => {
+          this.kritikSaranPerKelas[item.nama_kelas] = item.total;
+        });
+        this.siswaPerKelas = data.siswaPerKelas || {};
         this.pengumuman = data.pengumuman || [];
 
         this.prepareCharts();
@@ -102,49 +107,62 @@ export default {
         this.loading = false;
       }
     },
+
     prepareCharts() {
+      const labelsKelas = Object.keys(this.siswaPerKelas);
+      const kritikData = labelsKelas.map(kelas => this.kritikSaranPerKelas[kelas] ?? 0);
+
       this.kritikSaranChartData = {
-        labels: Object.keys(this.kritikSaranPerBulan),
+        labels: labelsKelas,
         datasets: [
           {
             label: "Jumlah Kritik Saran",
-            data: Object.values(this.kritikSaranPerBulan),
+            data: kritikData,
             backgroundColor: "#003080",
           },
         ],
       };
+
       this.kritikSaranChartOptions = {
         responsive: true,
-        plugins: { legend: { display: true } },
-        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+        plugins: {
+          legend: {
+            display: true
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1,
+              suggestedMax: 5
+            }
+          }
+        }
       };
 
-      const kelasCount = Object.keys(this.siswaPerKelas).length;
+      const siswaData = labelsKelas.map(kelas => this.siswaPerKelas[kelas] ?? 0);
       const colors = [
-        "#003080",
-        "#00509e",
-        "#0077b6",
-        "#0096c7",
-        "#00b4d8",
-        "#48cae4",
-        "#90e0ef",
-        "#ade8f4",
-        "#caf0f8",
+        "#003080", "#00509e", "#0077b6", "#0096c7", "#00b4d8",
+        "#48cae4", "#90e0ef", "#ade8f4", "#caf0f8", "#d0f0ff"
       ];
 
       this.siswaPerKelasChartData = {
-        labels: Object.keys(this.siswaPerKelas),
+        labels: labelsKelas,
         datasets: [
           {
-            data: Object.values(this.siswaPerKelas),
-            backgroundColor: colors.slice(0, kelasCount),
-            hoverBackgroundColor: colors.slice(0, kelasCount),
+            data: siswaData,
+            backgroundColor: colors.slice(0, labelsKelas.length),
+            hoverBackgroundColor: colors.slice(0, labelsKelas.length),
           },
         ],
       };
+
       this.siswaPerKelasChartOptions = {
         responsive: true,
-        plugins: { legend: { position: "right" } },
+        plugins: {
+          legend: { position: "right" },
+        },
       };
     },
   },

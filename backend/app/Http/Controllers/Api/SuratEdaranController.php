@@ -10,6 +10,7 @@ use App\Mail\KirimSuratEdaran;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class SuratEdaranController extends Controller
 {
@@ -52,6 +53,17 @@ class SuratEdaranController extends Controller
         return response()->download(storage_path('app/public/' . $surat->file));
     }
 
+    public function downloadByFilename($filename)
+    {
+        $filePath = 'surat-edaran/' . $filename;
+
+        if (!Storage::disk('public')->exists($filePath)) {
+            return response()->json(['message' => 'File tidak ditemukan.'], 404);
+        }
+
+        return response()->download(storage_path('app/public/' . $filePath));
+    }
+
     public function destroy($id)
     {
         $surat = SuratEdaran::findOrFail($id);
@@ -65,19 +77,44 @@ class SuratEdaranController extends Controller
         return response()->json(['message' => 'Surat berhasil dihapus.']);
     }
 
+    // public function upload(Request $request)
+    // {
+    //     Log::info($request->all());
+    //     Log::info($request->file('file'));
+
+    //     $request->validate([
+    //         'file' => 'required|file|mimes:pdf,doc,docx|max:10000',
+    //     ]);
+
+    //     if ($request->hasFile('file')) {
+    //         $file = $request->file('file');
+    //         $path = $file->store('surat-edaran', 'public');
+
+    //         return response()->json([
+    //             'message' => 'Upload berhasil',
+    //             'path' => $path,
+    //         ]);
+    //     }
+
+    //     return response()->json(['message' => 'Tidak ada file yang diupload'], 400);
+    // }
+
     public function upload(Request $request)
     {
         Log::info($request->all());
         Log::info($request->file('file'));
 
         $request->validate([
-            'file' => 'required|file|mimes:pdf,doc,docx|max:5120',
+            'file' => 'required|file|mimes:pdf,doc,docx|max:10000',
         ]);
 
         if ($request->hasFile('file')) {
             $file = $request->file('file');
-            $path = $file->store('surat-edaran', 'public');
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeName = Str::slug($originalName);
+            $filename = $safeName . '-' . uniqid() . '.' . $file->getClientOriginalExtension();
 
+            $path = $file->storeAs('surat-edaran', $filename, 'public');
             return response()->json([
                 'message' => 'Upload berhasil',
                 'path' => $path,
@@ -86,6 +123,7 @@ class SuratEdaranController extends Controller
 
         return response()->json(['message' => 'Tidak ada file yang diupload'], 400);
     }
+
 
     public function kirim(Request $request)
     {

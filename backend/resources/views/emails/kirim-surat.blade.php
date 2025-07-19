@@ -22,7 +22,12 @@ Tanggal: {{ \Carbon\Carbon::now()->format('d M Y') }}
 
 Anda dapat membaca atau mengunduh surat edaran tersebut melalui tombol di bawah ini:
 
-@component('mail::button', ['url' => url('/storage/' . $surat->file), 'color' => 'success'])
+@php
+    // $fileUrl = route('download.surat', basename($surat->file));
+    $fileUrl = url('/api/surat-edaran/download/' . basename($surat->file));
+@endphp
+
+@component('mail::button', ['url' => $fileUrl, 'color' => 'success'])
 📄 Unduh Surat Edaran
 @endcomponent
 
