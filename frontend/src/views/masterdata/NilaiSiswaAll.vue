@@ -85,7 +85,7 @@ const cetakRaport = async () => {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
           Accept: 'application/pdf'
         },
-        withCredentials: true // penting jika supports_credentials = true
+        withCredentials: true 
       }
     )
 
